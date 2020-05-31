@@ -12,19 +12,21 @@ elif [ $DEPTH -lt 1 ]; then
     export DEPTH=1
 fi
 
-find /input -type f -O3 -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); mkdir -p $output; mv $input $output;' \;
+find /input -type f -O3 -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output;' \;
 find /input -type d -O3 -mindepth $DEPTH -exec ash 'rmdir '{}';' \;
 
 inotifywait -r -m -e close /input | while read dir op file; do
-    input=$dir$file
-    output=$(echo $dir | sed s/input/output/)
-    echo $input --> $output
-    if [ ! -e $output ]; then
-        mkdir -p $output
-    fi
-    mv $input $output
-    if [ $(echo $dir | grep -o / | wc -l) -gt $(($DEPTH+1)) ]; then
-        echo -n Removing Directory: $dir...
-        rmdir $dir 2>&1 > /dev/null && echo done || echo fail
+    if [[ $file != "" ]]; then
+        input=$dir$file
+        output=$(echo $dir | sed s/input/output/)
+        echo $input --> $output
+        if [ ! -e $output ]; then
+            mkdir -p $output
+        fi
+        mv $input $output
+        if [ $(echo $dir | grep -o / | wc -l) -gt $(($DEPTH+1)) ]; then
+            echo -n Removing Directory: $dir...
+            rmdir $dir 2>&1 > /dev/null && echo done || echo fail
+        fi
     fi
 done
