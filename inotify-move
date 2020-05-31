@@ -20,9 +20,15 @@ else
     export DEPTH=$((1+$DEPTH))
 fi
 
-find /input -type f -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output ; fi; mv $input $output; echo Moved $input;' \;
-find /input -type d -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
+while true; do #Temporary work areound loop
+    find /input -type f -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output ; fi; mv $input $output; echo Moved $input;' \;
+    find /input -type d -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
+    sleep 60
+done
 
+exit 0
+
+# Temporarily disabled while the inotifywait is evaluated because the lack of notifications is still a thing...
 inotifywait -r -m -e close --format '%w#%e#%f\n' /input | while read line; do
     print Line: $line
     dir=$(echo $line | cut -d"#" -f1)
