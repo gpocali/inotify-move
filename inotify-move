@@ -20,21 +20,23 @@ else
     export DEPTH=$((1+$DEPTH))
 fi
 
-find /input -type f -mindepth $ORIGDEPTH -exec ash 'input="'{}'"; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output; echo Moved $input;' \;
+find /input -type f -mindepth $ORIGDEPTH -exec ash 'input="'{}'"; output=$(echo "${input%/*}/" | sed s/input/output/); mkdir -p $output 2>&1 > /dev/null; fi; mv $input $output; echo Moved $input;' \;
 find /input -type d -mindepth $ORIGDEPTH -exec ash 'if [ -e '{}' ]; then rmdir '{}' && echo Removed '{}'; fi;' \;
 
-inotifywait -r -m -e close_write /input | while read dir op file; do
+inotifywait -r -m -e close /input | while read dir op file; do
     if [[ $file != "" ]]; then
         input=$dir$file
-        output=$(echo $dir | sed s/input/output/)
-        echo "$input --> $output"
-        if [ ! -e $output ]; then
-            mkdir -p $output
-        fi
-        mv $input $output
-        if [ $(echo $dir | grep -o / | wc -l) -gt $(($DEPTH+1)) ]; then
-            echo -n Removing Directory: $dir...
-            rmdir $dir 2>&1 > /dev/null && echo done || echo fail
+        if [ -e $input ]; then
+            output=$(echo $dir | sed s/input/output/)
+            echo "$input --> $output"
+            if [ ! -e $output ]; then
+                mkdir -p $output
+            fi
+            mv $input $output
+            if [ $(echo $dir | grep -o / | wc -l) -gt $(($DEPTH+1)) ]; then
+                echo -n Removing Directory: $dir...
+                rmdir $dir 2>&1 > /dev/null && echo done || echo fail
+            fi
         fi
     fi
 done
