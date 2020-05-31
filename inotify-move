@@ -25,7 +25,7 @@ find /input -type d -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $inpu
 
 cd /input
 
-inotifywait -r -m -v -e close --format '%w %e %f' | while read dir op file; do
+inotifywait -r -m -e close --format '%w %e %f' | while read dir op file; do
     if [[ "$file" != "" ]]; then
         input=$dir$file
         if [ -e $input ]; then
