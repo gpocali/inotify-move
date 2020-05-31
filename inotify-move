@@ -8,17 +8,20 @@
 
 if [ -z "$DEPTH" ]; then
     # If depth is not set, set to 2 which is anything below the /input directory
+    export ORIGDEPTH=1
     export DEPTH=2
 elif [ $DEPTH -lt 2 ]; then
     # If depth is 1 or less, set to 2 which is anything below the /input directory
+    export ORIGDEPTH=1
     export DEPTH=$((2))
 else
     # If depth is greater than 1, set to 1 + depth to convert to a depth relative to the /input directory
+    export ORIGDEPTH=$DEPTH
     export DEPTH=$((1+$DEPTH))
 fi
 
-find /input -type f -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output; echo Moved $input;' \;
-find /input -type d -mindepth $DEPTH -exec ash 'rmdir '{}'; echo Removed '{}';' \;
+find /input -type f -mindepth $ORIGDEPTH -exec ash 'input="'{}'"; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output; echo Moved $input;' \;
+find /input -type d -mindepth $ORIGDEPTH -exec ash 'if [ -e '{}' ]; then rmdir '{}' && echo Removed '{}'; fi;' \;
 
 inotifywait -r -m -e close_write /input | while read dir op file; do
     if [[ $file != "" ]]; then
