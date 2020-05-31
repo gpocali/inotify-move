@@ -12,14 +12,14 @@ elif [ $DEPTH -lt 1 ]; then
     export DEPTH=1
 fi
 
-find /input -type f -O3 -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output;' \;
-find /input -type d -O3 -mindepth $DEPTH -exec ash 'rmdir '{}';' \;
+find /input -type f -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output; echo Moved $input;' \;
+find /input -type d -mindepth $DEPTH -exec ash 'rmdir '{}'; echo Removed '{}';' \;
 
 inotifywait -r -m -e close /input | while read dir op file; do
     if [[ $file != "" ]]; then
         input=$dir$file
-        output=$(echo $dir | sed s/input/output/)
-        echo $input --> $output
+        output=$(echo $dir | sed s/input/output/)/
+        echo "$input --> $output"
         if [ ! -e $output ]; then
             mkdir -p $output
         fi
