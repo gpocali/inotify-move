@@ -20,8 +20,8 @@ else
     export DEPTH=$((1+$DEPTH))
 fi
 
-find /input -type f -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output ; fi; mv $input $output; echo Moved $input;' \;
-find /input -type d -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
+find /input -type f -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output ; fi; mv $input $output; echo Moved $input;' \;
+find /input -type d -depth -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
 
 inotifywait -r -m -e close --format '%w %e %f' /input | while read dir op file; do
     if [[ "$file" != "" ]]; then
@@ -41,6 +41,10 @@ inotifywait -r -m -e close --format '%w %e %f' /input | while read dir op file; 
             else
                 echo Excluding Directory: $input
             fi
+        else
+            echo Excluding Non-Existant File: $input
         fi
+    else
+        echo Exluding Input: $dir$file
     fi
 done
