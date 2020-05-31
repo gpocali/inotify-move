@@ -23,9 +23,7 @@ fi
 find /input -type f -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output ; fi; mv $input $output; echo Moved $input;' \;
 find /input -type d -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
 
-cd /input
-
-inotifywait -r -m -e close --format '%w %e %f' | while read dir op file; do
+inotifywait -r -m -e close --format '%w %e %f' /input | while read dir op file; do
     if [[ "$file" != "" ]]; then
         input=$dir$file
         if [ -e $input ]; then
