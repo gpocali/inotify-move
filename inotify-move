@@ -1,0 +1,30 @@
+#!/bin/ash
+# inotify-move Script
+## Gregory Pocali 5-31-2020
+### Recursively watches input directory and moves the file to the same relative path within the output folder
+#### Setting DEPTH environmental variable will not delete empty directories after move if less than or equal to this depth
+### On launch, existing files will be moved before the inotifywait process is launched
+#### Max Directories in Tree: 8192 (Default)
+
+if [ -z "$DEPTH" ]; then
+    export DEPTH=1
+elif [ $DEPTH -lt 1 ]; then
+    export DEPTH=1
+fi
+
+find /input -type f -O3 -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); mkdir -p $output; mv $input $output;' \;
+find /input -type d -O3 -mindepth $DEPTH -exec ash 'rmdir '{}';' \;
+
+inotifywait -r -m -e close /input | while read dir op file; do
+    input=$dir$file
+    output=$(echo $dir | sed s/input/output/)
+    echo $input --> $output
+    if [ ! -e $output ]; then
+        mkdir -p $output
+    fi
+    mv $input $output
+    if [ $(echo $dir | grep -o / | wc -l) -gt $(($DEPTH+1)) ]; then
+        echo -n Removing Directory: $dir...
+        rmdir $dir 2>&1 > /dev/null && echo done || echo fail
+    fi
+done
