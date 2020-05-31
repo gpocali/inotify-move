@@ -20,11 +20,11 @@ else
     export DEPTH=$((1+$DEPTH))
 fi
 
-find /input -type f -mindepth $ORIGDEPTH -exec ash 'input="'{}'"; output=$(echo "${input%/*}/" | sed s/input/output/); mkdir -p $output 2>&1 > /dev/null; fi; mv $input $output; echo Moved $input;' \;
-find /input -type d -mindepth $ORIGDEPTH -exec ash 'if [ -e '{}' ]; then rmdir '{}' && echo Removed '{}'; fi;' \;
+find /input -type f -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); mkdir -p $output 2>&1 > /dev/null; fi; mv $input $output; echo Moved $input;' \;
+find /input -type d -mindepth $ORIGDEPTH -exec ash -c 'input='{}'; if [ -e $input ]; then rmdir $input && echo Removed $input; fi;' \;
 
 inotifywait -r -m -e close /input | while read dir op file; do
-    if [[ $file != "" ]]; then
+    if [[ "$file" != "" ]]; then
         input=$dir$file
         if [ -e $input ]; then
             if [ ! -d $input ]; then
