@@ -7,9 +7,14 @@
 #### Max Directories in Tree: 8192 (Default)
 
 if [ -z "$DEPTH" ]; then
-    export DEPTH=1
-elif [ $DEPTH -lt 1 ]; then
-    export DEPTH=1
+    # If depth is not set, set to 2 which is anything below the /input directory
+    export DEPTH=2
+elif [ $DEPTH -lt 2 ]; then
+    # If depth is 1 or less, set to 2 which is anything below the /input directory
+    export DEPTH=$((2))
+else
+    # If depth is greater than 1, set to 1 + depth to convert to a depth relative to the /input directory
+    export DEPTH=$((1+$DEPTH))
 fi
 
 find /input -type f -mindepth $DEPTH -exec ash 'input='{}'; output=$(echo "${input%/*}/" | sed s/input/output/); if [ ! -e $output ]; then mkdir -p $output; fi; mv $input $output; echo Moved $input;' \;
